@@ -6,15 +6,17 @@
  */
 
 import React from 'react';
-import AppNavigator from '~/navigation/AppNavigator';
+import { AuthProvider } from '~/context/AuthContext';
+import MainNavigator from '~/navigation/MainNavigator';
 
 
 
 
 function App(): React.JSX.Element {
   return (
-
-    <AppNavigator/>
+    <AuthProvider>
+      <MainNavigator/>
+    </AuthProvider>
   );    
 }
 

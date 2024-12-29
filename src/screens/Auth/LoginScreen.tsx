@@ -1,20 +1,24 @@
 
 import { GoogleSignin, GoogleSigninButton, statusCodes,  } from '@react-native-google-signin/google-signin';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, Button, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import CenteredOr from '~/components/CentredOr';
+import GoogleButton from '~/components/GoogleButton';
+import { AuthContext } from '~/context/AuthContext';
 
 
 export default function LoginScreen({navigation}: any): React.JSX.Element {
-    const [userInfo, setUserInfo] = useState(null);
+    const { login , googleAuth} = useContext(AuthContext);
 
     const [email ,setEmail] = useState('')
     const [password ,setPassword] = useState('')
+    const [showPassword ,setShowPassword] = useState(false)
 
     useEffect(() => {
         GoogleSignin.configure({
-          webClientId: '1018149628451-n3n7fqgom93sdjev1jt5pth31jv24bn6.apps.googleusercontent.com', 
+          webClientId: '992658296741-ini60r2lpc1gilea0f68j29a2phal388.apps.googleusercontent.com', 
           offlineAccess: true, 
           scopes: ['profile', 'email'],
         });
@@ -24,13 +28,11 @@ export default function LoginScreen({navigation}: any): React.JSX.Element {
         * Sign in with Google    
       */
     
-      const signIn = async () => {
+      const googleLogin = async () => {
         try {
             await GoogleSignin.hasPlayServices(); 
             const response : any = await GoogleSignin.signIn();
-            console.log(response);
-            setUserInfo(response);
-            navigation.navigate('Home');
+            await googleAuth(response.data);
 
         } catch (error: any) {
           if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -46,24 +48,42 @@ export default function LoginScreen({navigation}: any): React.JSX.Element {
         }
       };
 
+      const handleLogin = () => {
+        try {
+          login(email, password);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      const handleNext = () => {
+        setShowPassword(true);
+      }
+
       
 
   return (
 
 
+       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        >
     <View style={styles.container}>
 
-        <Text style={styles.welcome}>The pharmacy at your fingertips</Text>
+
         {/* <Text style={styles.title}>IPHA</Text> */}
-      
+        <Image source={require('@asset/user.png')} style={{width: 200, height: 200, marginBottom: 20}}  />
+        <Text style={styles.welcome}>The pharmacy at your fingertips</Text>
  
-    <GoogleSigninButton
-        onPress={() => signIn()}
+      <GoogleSigninButton
+        onPress={() => googleLogin()}
         style={{ width: '100%', height: 56, maxWidth:500 ,marginBottom: 15}}
         size={GoogleSigninButton.Size.Wide}
         color={GoogleSigninButton.Color.Dark}
-      
-    /> 
+        
+        />
+        {/* <GoogleButton  onPress={() => googleLogin()}/> */}
+
         <CenteredOr/>
         
         <TextInput 
@@ -72,32 +92,37 @@ export default function LoginScreen({navigation}: any): React.JSX.Element {
             placeholder='Email'
             value= {email}
             style={styles.input}
+            editable={!showPassword}
             
             />
+            
+        {showPassword &&(
 
-        {/* <TextInput 
-            onChangeText={setPassword}
-            placeholder='password'
-            secureTextEntry
-            style={styles.input}
-            value= {password}
-            /> */}
+          <TextInput 
+          onChangeText={setPassword}
+          placeholder='password'
+          secureTextEntry
+          style={styles.input}
+          value= {password}
+          /> 
+        )}
         <View >
 
          
         </View>
 
           {/* Next Button */}
-      <TouchableOpacity style={styles.nextButton}>
-        <Text style={styles.nextButtonText}>Next</Text>
+      <TouchableOpacity style={styles.nextButton} onPress={showPassword ? handleLogin : handleNext}>
+        <Text style={styles.nextButtonText}>{showPassword ? 'Sign In' : 'Next'}</Text>
       </TouchableOpacity>
 
       {/* Forgot Password */}
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
         <Text style={styles.forgotPassword}>Forgot password?</Text>
       </TouchableOpacity>
 
          {/* Sign Up */}
+      
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={styles.signUp}>
           Don't have an account? <Text style={styles.signUpLink}>Sign up</Text>
@@ -105,6 +130,7 @@ export default function LoginScreen({navigation}: any): React.JSX.Element {
       </TouchableOpacity>
 
     </View>
+        </ScrollView>
  
 );
 }
